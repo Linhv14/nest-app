@@ -1,19 +1,68 @@
-import { Injectable } from "@nestjs/common";
-import { IUser } from "./interfaces/user.interface";
+import { 
+    Injectable, 
+    ForbiddenException, 
+    NotFoundException,
+    BadRequestException
+} from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { User } from "./schemas/user.schema";
+import mongoose from "mongoose";
+import * as argon from "argon2";
 
 Injectable()
 export class UsersService {
-    private readonly users: IUser[]
+    constructor(
+        @InjectModel(User.name)
+        private readonly userModel: mongoose.Model<User>
+    ) { }
 
-    create(user: IUser): void {
-        this.users.push(user)
+    async create(user: User): Promise<any> {
+
+        user.password = await argon.hash(user.password)
+
+        try {
+            const newUser = await this.userModel.create(user)
+            delete newUser.password
+            return newUser
+        } catch (error) {
+            if (error.code == 11000) {
+                throw new ForbiddenException("Email already exists")
+            }  else {
+                throw new Error(error.message)
+            }
+        }
     }
 
-    findAll(): IUser[] {
-        return this.users
+    async findAll(): Promise<User[]> {
+        const users = await this.userModel.find()
+        return users
     }
 
-    findOne(id: IUser['id']) {
-        return this.users.find((user: IUser) => user.id == id)
+    async findById(id: string): Promise<User> {
+        const user = await this.userModel.findById(id)
+
+        if (!user) {
+            throw new NotFoundException('User not found')
+        }
+        delete user.password
+        return user
+    }
+
+    async updateById(id: string, user: User): Promise<User> {
+        try {
+            const newUser = await this.userModel.findByIdAndUpdate(id, user, {
+                new: true,
+                runValidators: true,
+              })
+
+            delete newUser.password
+            return newUser
+        } catch (error) {
+            throw new BadRequestException("Cannot find user")
+        }
+      }
+
+    async deleteById(id: string): Promise<User> {
+        return await this.userModel.findByIdAndDelete(id)
     }
 }

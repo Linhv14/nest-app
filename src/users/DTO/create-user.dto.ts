@@ -1,11 +1,38 @@
-import { UserRole } from "src/helpers/Roles/user.role"
+import { 
+    IsBoolean,
+    IsEmail, 
+    IsNotEmpty, 
+    IsNumber, 
+    IsOptional, 
+    IsString} from "class-validator"
+import { UserRole } from "src/helpers/roles/user.role"
 
 export class CreateUserDTO {
-    id: string
-    name: string
-    age: number
-    email: string
-    password: string
-    phone?: string
-    role: UserRole
+    @IsNotEmpty()
+    @IsString()
+    readonly name: string
+    
+    @IsNotEmpty()
+    @IsEmail()
+    // @IsUniqe()
+    readonly email: string
+    
+    @IsNotEmpty()
+    @IsNumber()
+    readonly age: number
+    
+    @IsOptional()
+    readonly phone: string
+    
+    @IsNotEmpty()    
+    @IsString()
+    readonly role: UserRole
+
+    @IsNotEmpty()
+    @IsString()
+    readonly password: string
+
+    @IsOptional()
+    @IsBoolean()
+    readonly verified: boolean
 }
