@@ -12,9 +12,8 @@ export class CreateUserDTO {
     @IsString()
     readonly name: string
     
-    @IsNotEmpty()
     @IsEmail()
-    // @IsUniqe()
+    @IsOptional()
     readonly email: string
     
     @IsNotEmpty()
@@ -28,11 +27,16 @@ export class CreateUserDTO {
     @IsString()
     readonly role: UserRole
 
-    @IsNotEmpty()
+
+    @IsOptional()
     @IsString()
     readonly password: string
 
     @IsOptional()
     @IsBoolean()
     readonly verified: boolean
+
+    @IsOptional()
+    @IsString()
+    readonly token: string
 }

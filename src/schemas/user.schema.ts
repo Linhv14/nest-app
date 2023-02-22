@@ -1,31 +1,35 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { UserRole } from "src/helpers/roles/user.role";
+import { Exclude, Transform } from 'class-transformer';
 
 @Schema({
     timestamps: true
 })
 export class User {
 
-    @Prop({required: true})
+    @Prop()
     name: string
     
-    @Prop({required: true, unique: true})
+    @Prop({unique: true})
     email: string
 
-    @Prop({required: true})
+    @Prop()
     age: number
 
-    @Prop({required: true, default: "customer"})
+    @Prop({default: "customer"})
     role: UserRole
 
-    @Prop({required: false})
+    @Prop()
     phone: string
 
-    @Prop({required: true})
+    @Prop()
     password: string
 
-    @Prop({required: false, default: false})
+    @Prop({default: false})
     verified: boolean
+
+    @Prop()
+    token: string
 
 }
 

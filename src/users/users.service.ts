@@ -5,9 +5,8 @@ import {
     BadRequestException
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { User } from "./schemas/user.schema";
+import { User } from "../schemas/user.schema";
 import mongoose from "mongoose";
-import * as argon from "argon2";
 
 Injectable()
 export class UsersService {
@@ -16,20 +15,16 @@ export class UsersService {
         private readonly userModel: mongoose.Model<User>
     ) { }
 
-    async create(user: User): Promise<any> {
-
-        user.password = await argon.hash(user.password)
-
+    async create(user: User): Promise<User> {
         try {
             const newUser = await this.userModel.create(user)
-            delete newUser.password
             return newUser
         } catch (error) {
-            if (error.code == 11000) {
+            if (error.code == 11000)
+            {
                 throw new ForbiddenException("Email already exists")
-            }  else {
-                throw new Error(error.message)
             }
+            throw new BadRequestException(error.message) 
         }
     }
 

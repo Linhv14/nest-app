@@ -8,4 +8,5 @@ export class UpdateUserDTO {
     readonly role: UserRole
     readonly password: string
     readonly verified: boolean
+    readonly token: string
 }
