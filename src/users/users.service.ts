@@ -6,18 +6,19 @@ import {
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { User } from "../schemas/user.schema";
-import mongoose from "mongoose";
+import { Model, ObjectId } from "mongoose";
 
 Injectable()
 export class UsersService {
     constructor(
         @InjectModel(User.name)
-        private readonly userModel: mongoose.Model<User>
+        private readonly userModel: Model<User>
     ) { }
 
     async create(user: User): Promise<User> {
         try {
             const newUser = await this.userModel.create(user)
+            newUser.password = undefined
             return newUser
         } catch (error) {
             if (error.code == 11000)
@@ -30,7 +31,10 @@ export class UsersService {
 
     async findAll(): Promise<User[]> {
         const users = await this.userModel.find()
-        return users
+        return users.map(user => {
+            user.password = undefined
+            return user
+        })
     }
 
     async findById(id: string): Promise<User> {
@@ -39,8 +43,17 @@ export class UsersService {
         if (!user) {
             throw new NotFoundException('User not found')
         }
-        delete user.password
+        
+        user.password = undefined
         return user
+    }
+
+    async findUnique(query: {}) {
+        try {
+            return await this.userModel.findOne(query)
+        } catch (error) {
+            throw new BadRequestException(error.message)
+        }
     }
 
     async updateById(id: string, user: User): Promise<User> {
@@ -48,9 +61,9 @@ export class UsersService {
             const newUser = await this.userModel.findByIdAndUpdate(id, user, {
                 new: true,
                 runValidators: true,
-              })
+            })
 
-            delete newUser.password
+            newUser.password = undefined
             return newUser
         } catch (error) {
             throw new BadRequestException("Cannot find user")

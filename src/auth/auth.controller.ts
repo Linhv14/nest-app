@@ -1,7 +1,9 @@
-import { Post, Body, Controller } from '@nestjs/common';
+import { Post, Body, Controller, UseGuards, Put, Param, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDTO } from './DTO/create-auth.dto';
+import { CreateAuthDTO, AuthenticateDTO } from './DTO/auth.dto';
 import { User } from '../schemas/user.schema';
+import { IChangePassword } from 'src/helpers/interfaces/password.interface';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -13,7 +15,14 @@ export class AuthController {
     }
 
     @Post('login')
-    login(@Body() user: CreateAuthDTO) {
+    login(@Body() user: AuthenticateDTO) {
         return this.usersService.login(user)
+    }
+
+    
+    // @UseGuards(AuthGuard('jwt'))
+    @Put('change-password/:id') 
+    changePassword(@Param('id') id: string, @Body() data: IChangePassword) {
+        return this.usersService.changePassword(id, data)
     }
 }
