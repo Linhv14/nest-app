@@ -4,6 +4,7 @@ export interface IPayload {
     sub: string,
     email: string,
     role: UserRole
+    status: boolean
 }
 
 export interface IAccressToken {

@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const PORT = process.env.PORT || 3000
@@ -11,7 +12,9 @@ async function bootstrap() {
     exclude: [
       { path: 'auth/login', method: RequestMethod.POST },
       { path: 'auth/register', method: RequestMethod.POST },
-      { path: 'auth/change-password/:id', method: RequestMethod.PUT },
+      { path: 'auth/:id/password', method: RequestMethod.PATCH },
+      { path: 'auth/:id/block', method: RequestMethod.PATCH },
+      { path: 'auth/:id/unblock', method: RequestMethod.PATCH },
     ]
   })
 

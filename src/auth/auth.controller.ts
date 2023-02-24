@@ -1,28 +1,43 @@
-import { Post, Body, Controller, UseGuards, Put, Param, Get } from '@nestjs/common';
+import { Post, Body, Controller, UseGuards, Param, Patch } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDTO, AuthenticateDTO } from './DTO/auth.dto';
-import { User } from '../schemas/user.schema';
-import { IChangePassword } from 'src/helpers/interfaces/password.interface';
+import { RegisterDTO, LoginDTO, ChangePasswordDTO } from './DTO/auth.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from '../helpers/guards/roles.guard';
+import { User } from '../schemas/user.schema';
+import { Roles } from '../helpers/decorators/role.decorator';
 
 @Controller('auth')
 export class AuthController {
     constructor(private readonly usersService: AuthService) { }
 
     @Post('register')
-    create(@Body() user: CreateAuthDTO) {
+    register(@Body() user: RegisterDTO) {
         return this.usersService.register(user)
     }
 
     @Post('login')
-    login(@Body() user: AuthenticateDTO) {
+    login(@Body() user: LoginDTO) {
         return this.usersService.login(user)
     }
-
     
-    // @UseGuards(AuthGuard('jwt'))
-    @Put('change-password/:id') 
-    changePassword(@Param('id') id: string, @Body() data: IChangePassword) {
+    @UseGuards(AuthGuard('jwt'))
+    @Patch(':id/password') 
+    changePassword(@Param('id') id: string, @Body() data: ChangePasswordDTO) {
         return this.usersService.changePassword(id, data)
     }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin')
+    @Patch(':id/block')
+    blockUser(@Param('id') id: string): Promise<User> {
+        return this.usersService.block(id)
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin')
+    @Patch(':id/unblock')
+    unBlockUser(@Param('id') id: string): Promise<User> {
+        return this.usersService.unBlock(id)
+    }
+
 }

@@ -6,8 +6,7 @@ import mongoose from 'mongoose';
 import * as argon from 'argon2';
 import { IAccressToken, IPayload } from 'src/helpers/interfaces/payload.interface';
 import { getPayload, verifyPassword } from 'src/helpers/helper';
-import { IChangePassword } from 'src/helpers/interfaces/password.interface';
-import { stringify } from 'querystring';
+import { ChangePasswordDTO, LoginDTO } from './DTO/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -29,62 +28,73 @@ export class AuthService {
 
         } catch (error) {
             if (error.code == 11000) {
-                throw new ForbiddenException("Email already exists")
+                throw new ForbiddenException('Email already exists')
             } else {
                 throw new Error(error.message)
             }
         }
     }
 
-    async login(user: User): Promise<IAccressToken> {
-        const queryUser = await this.userModel.findOne({ email: user.email })
+    async login(input: LoginDTO): Promise<IAccressToken> {
+        const user = await this.userModel.findOne({ email: input.email })
 
-        if (!queryUser && !verifyPassword(queryUser.password, user.password)) {
-            throw new UnauthorizedException("Wrong credentials")
+        if (!user) {
+            throw new UnauthorizedException('Wrong credentials')
         }
 
-        const payload = getPayload(queryUser._id, queryUser)
+        // Check account banned or not
+        if (!user.status) {
+            throw new ForbiddenException('Your account has locked')
+        }
+
+        if (! await verifyPassword(user.password, input.password)) {
+            throw new UnauthorizedException('Wrong credentials')
+        }
+
+        const payload = getPayload(user._id, user)
 
         return await this.signJwtToken(payload)
     }
 
-    async changePassword(id: string, data: IChangePassword): Promise<any> {
+    async changePassword(id: string, input: ChangePasswordDTO): Promise<any> {
 
         const user = await this.userModel.findById(id)
-        console.log(user.password);
-        const isMatched = await argon.verify(data.currentPassword, user.password)
-        if (!isMatched) {
-            throw new UnauthorizedException("Incorrect password")
+
+        const isMatchedOldPassowrd = await argon.verify(user.password, input.currentPassword)
+        if (!isMatchedOldPassowrd) {
+            throw new UnauthorizedException('Incorrect old password')
         }
-        console.log(isMatched);
 
-        // try {
-        //     const newHashedPassword = await argon.hash(data.newPassword)
-        //     // user.password = await argon.hash(user.password)
-        //     console.log("newHashedPassword");
-        //     await this.userModel.updateOne({ _id: id }, { password: newHashedPassword })
-        //     // const newUser = await this.userModel.findByIdAndUpdate(id, user, {
-        //     //     new: true,
-        //     //     runValidators: true,
-        //     // }) 
+        const isMatchedOldAndNewPassowrd = await argon.verify(user.password, input.newPassword)
 
-        //     const payload = getPayload(user._id, user)
-        //     return await this.signJwtToken(payload)
-        // } catch (error) {
-        //     throw new BadRequestException(error.message)
-        // }
+        if (isMatchedOldAndNewPassowrd) {
+            throw new BadRequestException('New password cannot be the same as your old password')
+        }
 
+        const newHashedPassword = await argon.hash(input.newPassword)
 
+        user.password = newHashedPassword
+        await user.save()
+
+        const payload = getPayload(user._id, user)
+        return await this.signJwtToken(payload)
+
+    }
+    
+    async block(id: string): Promise<User> {
+        return await this.userModel.findByIdAndUpdate(id, { status: false }, { new: true })
+    }
+
+    async unBlock(id: string): Promise<User> {
+        return await this.userModel.findByIdAndUpdate(id, { status: true }, { new: true })
     }
 
     async signJwtToken(payload: IPayload): Promise<IAccressToken> {
 
-        const jwtString = await this.jwtService.signAsync(payload, {
+        const accessToken = await this.jwtService.signAsync(payload, {
             expiresIn: process.env.JWT_EXPRISE_IN,
             secret: process.env.JWT_SECRET_KEY
         })
-        return {
-            accessToken: jwtString
-        }
+        return { accessToken }
     }
 }

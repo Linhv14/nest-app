@@ -6,13 +6,16 @@ import {
     IsOptional, 
     IsString} from "class-validator"
 import { UserRole } from "src/helpers/roles/user.role"
-import { Exclude, Expose } from 'class-transformer';
 
 export class CreateUserDTO {
     @IsNotEmpty()
     @IsString()
     readonly name: string
-    
+
+    @IsOptional()
+    @IsString()
+    readonly avatar: string
+
     @IsEmail()
     @IsOptional()
     readonly email: string
@@ -28,7 +31,6 @@ export class CreateUserDTO {
     @IsNotEmpty()
     readonly role: UserRole
 
-    @Exclude()
     @IsOptional()
     @IsString()
     readonly password: string
@@ -37,16 +39,12 @@ export class CreateUserDTO {
     readonly verified: boolean
 
     @IsOptional()
-    readonly token: string
-
-    @IsOptional()
-    readonly disable: boolean
+    readonly status: boolean
 }
 
 export class UpdateUserDTO {
+    @IsNotEmpty()
     readonly name: string
-    @IsOptional()
-    readonly email: string
 
     @IsNotEmpty()
     @IsNumber()
@@ -55,19 +53,4 @@ export class UpdateUserDTO {
     @IsNotEmpty()
     @IsNumberString()
     readonly phone: string
-
-    @IsOptional()
-    readonly role: UserRole
-
-    @IsOptional()
-    readonly password: string
-
-    @IsOptional()
-    readonly verified: boolean
-
-    @IsOptional()
-    readonly token: string
-
-    @IsOptional()
-    readonly disable: boolean
 }

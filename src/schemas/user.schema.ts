@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { UserRole } from "src/helpers/roles/user.role";
-import { Exclude, Expose } from 'class-transformer';
+
 @Schema({
     timestamps: true
 })
@@ -8,7 +8,10 @@ export class User {
 
     @Prop()
     name: string
-    
+
+    @Prop()
+    avatar: string
+
     @Prop({unique: true})
     email: string
 
@@ -21,18 +24,14 @@ export class User {
     @Prop()
     phone: string
 
-    @Exclude()
     @Prop()
     password: string
 
     @Prop({default: false})
     verified: boolean
 
-    @Prop()
-    token: string
-
-    @Prop({default: false})
-    disable: boolean
+    @Prop({default: true})
+    status: boolean
 
 }
 
