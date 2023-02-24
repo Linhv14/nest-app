@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import * as argon from 'argon2';
 import { IAccressToken, IPayload } from 'src/helpers/interfaces/payload.interface';
 import { getPayload, verifyPassword } from 'src/helpers/helper';
-import { ChangePasswordDTO, LoginDTO } from './DTO/auth.dto';
+import { ChangePasswordDTO, LoginDTO, UpdateSecretFieldUserDTO } from './DTO/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +22,7 @@ export class AuthService {
         try {
             const newUser = await this.userModel.create(user)
 
-            const payload = getPayload(newUser._id, newUser)
+            const payload = getPayload(newUser._id.toHexString(), newUser)
 
             return await this.signJwtToken(payload)
 
@@ -51,7 +51,7 @@ export class AuthService {
             throw new UnauthorizedException('Wrong credentials')
         }
 
-        const payload = getPayload(user._id, user)
+        const payload = getPayload(user._id.toHexString(), user)
 
         return await this.signJwtToken(payload)
     }
@@ -76,17 +76,13 @@ export class AuthService {
         user.password = newHashedPassword
         await user.save()
 
-        const payload = getPayload(user._id, user)
+        const payload = getPayload(user._id.toHexString(), user)
         return await this.signJwtToken(payload)
 
     }
     
-    async block(id: string): Promise<User> {
-        return await this.userModel.findByIdAndUpdate(id, { status: false }, { new: true })
-    }
-
-    async unBlock(id: string): Promise<User> {
-        return await this.userModel.findByIdAndUpdate(id, { status: true }, { new: true })
+    async updateById(id: string, updateData: UpdateSecretFieldUserDTO): Promise<User> {
+        return await this.userModel.findByIdAndUpdate(id, updateData, { new: true })
     }
 
     async signJwtToken(payload: IPayload): Promise<IAccressToken> {

@@ -30,14 +30,14 @@ export class AuthController {
     @Roles('admin')
     @Patch(':id/block')
     blockUser(@Param('id') id: string): Promise<User> {
-        return this.usersService.block(id)
+        return this.usersService.updateById(id, { status: false })
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles('admin')
     @Patch(':id/unblock')
     unBlockUser(@Param('id') id: string): Promise<User> {
-        return this.usersService.unBlock(id)
+        return this.usersService.updateById(id, { status: true })
     }
 
 }

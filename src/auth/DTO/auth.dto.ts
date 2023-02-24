@@ -51,3 +51,8 @@ export class ChangePasswordDTO {
     @IsNotEmpty()
     readonly newPassword: string
 }
+
+export class UpdateSecretFieldUserDTO {
+    status?: boolean
+    verified?: boolean
+}
