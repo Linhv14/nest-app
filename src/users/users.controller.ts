@@ -44,7 +44,39 @@ export class UsersController {
     @Roles('admin', 'staff')
     @Get('blocked')
     findBlockUsers(): Promise<User[]> {
-        return this.usersService.getBlockedUsers()
+        const filter = { status: false }
+        return this.usersService.findFilter(filter)
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin', 'staff')
+    @Get('customers')
+    getCustomers(): Promise<User[]> {
+        const filter = { role: 'customer' }
+        return this.usersService.findFilter(filter)
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin')
+    @Get('staffs')
+    getStaffs(): Promise<User[]> {
+        const filter = { role: 'staff' }
+        return this.usersService.findFilter(filter)
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin')
+    @Get('admins')
+    getAdmin(): Promise<User[]> {
+        const filter = { role: 'admin' }
+        return this.usersService.findFilter(filter)
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles('admin')
+    @Get('recent/:dayAgo')
+    getRecentUsers(@Param('dayAgo') dayAgo: number) {
+        return this.usersService.getRecentUsers(dayAgo)
     }
 
     @Get(':id')

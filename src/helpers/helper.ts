@@ -1,14 +1,14 @@
 import * as argon from 'argon2';
-import mongoose, { ObjectId } from 'mongoose';
+import mongoose from 'mongoose';
 import { User } from 'src/schemas/user.schema';
 
 export async function verifyPassword(hashedPassword, rawPassword): Promise<boolean> {
     return await argon.verify(hashedPassword, rawPassword)
 }
 
-export function getPayload(id: string, user: User) {
+export function getPayload(id: mongoose.Types.ObjectId, user: User) {
     return {
-        sub: id,
+        sub: id.toHexString(),
         email: user.email,
         role: user.role,
         status: user.status

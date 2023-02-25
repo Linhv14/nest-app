@@ -8,6 +8,8 @@ import { InjectModel } from "@nestjs/mongoose";
 import { User } from "../schemas/user.schema";
 import { Model, ObjectId } from "mongoose";
 import { UpdateUserDTO } from "./DTO/user.dto";
+import { retry } from "rxjs";
+import { getDayAgo } from "src/helpers/helper";
 
 Injectable()
 export class UsersService {
@@ -49,7 +51,7 @@ export class UsersService {
         return user
     }
 
-    async findUnique(query: {}) {
+    async findUnique(query: {}): Promise<User> {
         try {
             return await this.userModel.findOne(query)
         } catch (error) {
@@ -75,8 +77,20 @@ export class UsersService {
         return await this.userModel.findByIdAndDelete(id)
     }
 
-    async getBlockedUsers(): Promise<User[]> {
-        return await this.userModel.find({ status: false })
+    async findFilter(filter): Promise<User[]> {
+        const users = await this.userModel.find(filter)
+        return users.map(user => {
+            user.password = undefined
+            return user
+        })
+    }
+
+    async getRecentUsers(day: number): Promise<User[]> {
+        const users = await this.userModel.find({ createdAt: { $gte: getDayAgo(day) } })
+        return users.map(user => {
+            user.password = undefined
+            return user
+        })
     }
 
 }

@@ -22,7 +22,7 @@ export class AuthService {
         try {
             const newUser = await this.userModel.create(user)
 
-            const payload = getPayload(newUser._id.toHexString(), newUser)
+            const payload = getPayload(newUser._id, newUser)
 
             return await this.signJwtToken(payload)
 
@@ -51,7 +51,7 @@ export class AuthService {
             throw new UnauthorizedException('Wrong credentials')
         }
 
-        const payload = getPayload(user._id.toHexString(), user)
+        const payload = getPayload(user._id, user)
 
         return await this.signJwtToken(payload)
     }
@@ -76,13 +76,15 @@ export class AuthService {
         user.password = newHashedPassword
         await user.save()
 
-        const payload = getPayload(user._id.toHexString(), user)
+        const payload = getPayload(user._id, user)
         return await this.signJwtToken(payload)
 
     }
     
     async updateById(id: string, updateData: UpdateSecretFieldUserDTO): Promise<User> {
-        return await this.userModel.findByIdAndUpdate(id, updateData, { new: true })
+        const user = await this.userModel.findByIdAndUpdate(id, updateData, { new: true })
+        user.password = undefined
+        return user
     }
 
     async signJwtToken(payload: IPayload): Promise<IAccressToken> {
