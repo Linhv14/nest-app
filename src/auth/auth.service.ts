@@ -90,7 +90,7 @@ export class AuthService {
     async signJwtToken(payload: IPayload): Promise<IAccressToken> {
 
         const accessToken = await this.jwtService.signAsync(payload, {
-            expiresIn: process.env.JWT_EXPRISE_IN,
+            expiresIn: process.env.JWT_EXPIRES_IN,
             secret: process.env.JWT_SECRET_KEY
         })
         return { accessToken }
